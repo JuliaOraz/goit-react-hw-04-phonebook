@@ -1,6 +1,5 @@
-import { Component } from 'react';
+import { useState, useEffect } from 'react';
 import { nanoid } from 'nanoid';
-
 import { ContactsForm } from 'components/ContactsForm';
 import { ContactsFilter } from 'components/ContactsFilter';
 import { ContactsList } from 'components/ContactsList';
@@ -9,90 +8,82 @@ import {
   TitlePhoneBook,
 } from 'components/PhoneBook/PhoneBook.styled';
 
-export class PhoneBook extends Component {
-  state = {
-    contacts: [],
-    filter: '',
-  };
+export const PhoneBook = () => {
+  const [contacts, setContacts] = useState(() => {
+    return JSON.parse(localStorage.getItem('contacts')) ?? [];
+  });
+  const [filter, setFilter] = useState('');
 
-  componentDidMount() {
-    const localContacts = JSON.parse(localStorage.getItem('contacts'));
-    if (localContacts) {
-      this.setState({ contacts: localContacts });
-    }
-  }
+  useEffect(() => {
+    localStorage.setItem('contacts', JSON.stringify(contacts));
+  }, [contacts]);
 
-  componentDidUpdate(prevProps, prevState) {
-    if (prevState.contacts !== this.state.contacts) {
-      localStorage.setItem('contacts', JSON.stringify(this.state.contacts));
-    }
-  }
-
-  addContacts = contact => {
-    const { contacts } = this.state;
-    const searchDuplicate = contacts.find(item => item.name === contact.name);
-
-    if (searchDuplicate) {
+  const addContacts = contact => {
+    if (searchDuplicate(searchDuplicate)) {
       return alert(`${contact.name} is already in contacts`);
     }
 
-    const newContact = {
-      id: nanoid(),
-      ...contact,
-    };
-
-    this.setState(prevState => {
-      return {
-        contacts: [...prevState.contacts, newContact],
+    setContacts(prevContacts => {
+      const newContact = {
+        id: nanoid(),
+        ...contact,
       };
+
+      return [...prevContacts, newContact];
     });
   };
 
-  removeContacts = contactId => {
-    this.setState(prevState => ({
-      contacts: prevState.contacts.filter(contact => contact.id !== contactId),
-    }));
+  const searchDuplicate = ({ name }) => {
+    return contacts.find(item => item.name === name);
   };
 
-  onChange = ({ currentTarget }) => {
-    const { name, value } = currentTarget;
-    this.setState({
-      [name]: value,
+  const removeContacts = contactId => {
+    setContacts(prevContacts => {
+      const newContacts = prevContacts.filter(
+        contact => contact.id !== contactId
+      );
+
+      return newContacts;
     });
   };
 
-  getFilterContacts = () => {
-    const { contacts, filter } = this.state;
+  const onChange = e => {
+    const { value } = e.target;
+
+    setFilter(value);
+  };
+
+  const getFilterContacts = () => {
     const normalizedFilter = filter.toLocaleLowerCase();
 
     if (!filter) {
       return contacts;
     }
-    return contacts.filter(({ name, number }) => {
+
+    return contacts.filter(({ name }) => {
       const normalizedName = name.toLocaleLowerCase();
       return normalizedName.includes(normalizedFilter);
     });
   };
 
-  render() {
-    const { addContacts, onChange, removeContacts } = this;
-    const { filter } = this.state;
-    const contacts = this.getFilterContacts();
-    return (
-      <ContainerPhoneBook>
-        <TitlePhoneBook>Phonebook</TitlePhoneBook>
-        <ContactsForm addContacts={addContacts} />
+  const filterContacts = getFilterContacts();
 
-        <TitlePhoneBook>Contacts</TitlePhoneBook>
-        {this.state.contacts.length > 0 ? (
-          <>
-            <ContactsFilter onChange={onChange} filter={filter} />
-            <ContactsList items={contacts} onRemoveContacts={removeContacts} />
-          </>
-        ) : (
-          'There are no contacts'
-        )}
-      </ContainerPhoneBook>
-    );
-  }
-}
+  return (
+    <ContainerPhoneBook>
+      <TitlePhoneBook>Phonebook</TitlePhoneBook>
+      <ContactsForm addContacts={addContacts} />
+      <TitlePhoneBook>Contacts</TitlePhoneBook>
+      {contacts.length > 0 ? (
+        <>
+          <ContactsFilter onChange={onChange} filter={filter} />
+          <ContactsList
+            items={filterContacts}
+            onRemoveContacts={removeContacts}
+          />
+        </>
+      ) : (
+        'There are no contacts'
+      )}
+    </ContainerPhoneBook>
+  );
+};
