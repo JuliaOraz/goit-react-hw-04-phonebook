@@ -19,7 +19,7 @@ export const PhoneBook = () => {
   }, [contacts]);
 
   const addContacts = contact => {
-    if (searchDuplicate(searchDuplicate)) {
+    if (searchDuplicate(contact)) {
       return alert(`${contact.name} is already in contacts`);
     }
 

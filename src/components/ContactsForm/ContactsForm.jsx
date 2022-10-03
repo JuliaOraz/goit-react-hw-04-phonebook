@@ -8,13 +8,9 @@ import {
   FormButton,
 } from 'components/ContactsForm/ContactsForm.styled';
 
-const initialState = {
-  name: '',
-  number: '',
-};
-
 export const ContactsForm = ({ addContacts }) => {
-  const [formState, setFormState] = useState(initialState);
+  const [name, setName] = useState('');
+  const [number, setNumber] = useState('');
 
   const nameId = nanoid();
   const numberId = nanoid();
@@ -22,21 +18,26 @@ export const ContactsForm = ({ addContacts }) => {
   const onChangeForm = e => {
     const { name, value } = e.target;
 
-    setFormState(prevState => {
-      return {
-        ...prevState,
-        [name]: value,
-      };
-    });
+    switch (name) {
+      case 'name':
+        setName(value);
+        break;
+
+      case 'number':
+        setNumber(value);
+        break;
+
+      default:
+        break;
+    }
   };
 
   const onSubmitForm = e => {
     e.preventDefault();
 
-    const { name, number } = formState;
-
     addContacts({ name, number });
-    setFormState(initialState);
+    setName('');
+    setNumber('');
   };
 
   return (
@@ -47,7 +48,7 @@ export const ContactsForm = ({ addContacts }) => {
           id={nameId}
           type="tel"
           name="name"
-          value={formState.name}
+          value={name}
           onChange={onChangeForm}
           pattern="^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$"
           title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
@@ -60,7 +61,7 @@ export const ContactsForm = ({ addContacts }) => {
           id={numberId}
           type="tel"
           name="number"
-          value={formState.number}
+          value={number}
           onChange={onChangeForm}
           pattern="\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
           title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
